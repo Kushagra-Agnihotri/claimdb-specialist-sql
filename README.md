@@ -61,4 +61,4 @@ See the full experiment documentation at the [GitHub Pages site](https://f202407
 
 ---
 
-BITS Pilani · Independent Learning Lab Module (ILLM) · 2026
+BITS Pilani · 2026
