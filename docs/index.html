@@ -1,0 +1,687 @@
+<title>ClaimDB Specialist SQL</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single-column document with data tables, anchored nav */
+:root {
+  --bg: #fafaf9;
+  --fg: #1c1917;
+  --fg-muted: #57534e;
+  --surface: #ffffff;
+  --border: #e7e5e4;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --code-bg: #f5f5f4;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0a09; --fg: #e7e5e4; --fg-muted: #a8a29e;
+    --surface: #1c1917; --border: #292524;
+    --accent: #60a5fa; --accent-light: #1e3a5f;
+    --green: #4ade80; --green-light: #14532d;
+    --amber: #fbbf24; --amber-light: #451a03;
+    --red: #f87171; --red-light: #450a0a;
+    --code-bg: #1c1917;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0a09; --fg: #e7e5e4; --fg-muted: #a8a29e;
+  --surface: #1c1917; --border: #292524;
+  --accent: #60a5fa; --accent-light: #1e3a5f;
+  --green: #4ade80; --green-light: #14532d;
+  --amber: #fbbf24; --amber-light: #451a03;
+  --red: #f87171; --red-light: #450a0a;
+  --code-bg: #1c1917;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.6; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+.wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-block: 2rem 4rem;
+}
+
+/* Nav */
+nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0;
+  z-index: 5;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--bg);
+}
+nav a {
+  color: var(--fg-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+nav a:hover { color: var(--accent); }
+
+/* Header */
+header {
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 2px solid var(--fg);
+}
+header h1 {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+header .subtitle {
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+  max-width: 640px;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2em 0.6em;
+  border-radius: 3px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+.badge-done { background: var(--green-light); color: var(--green); }
+.badge-progress { background: var(--amber-light); color: var(--amber); }
+.badge-planned { background: var(--accent-light); color: var(--accent); }
+
+/* Sections */
+section {
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+section:last-of-type { border-bottom: none; }
+h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+}
+p, li { color: var(--fg); }
+p { margin: 0 0 0.75rem; max-width: 640px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+th, td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+th {
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+}
+td { background: var(--bg); }
+tr:hover td { background: var(--surface); }
+.num { text-align: right; font-family: var(--font-mono); font-size: 0.84rem; }
+.highlight { background: var(--green-light) !important; }
+
+/* Code blocks */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  background: var(--code-bg);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+pre code { background: none; padding: 0; }
+
+/* Architecture diagram */
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.arch-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.arch-box h4 {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+  color: var(--accent);
+}
+.arch-box p {
+  font-size: 0.82rem;
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+/* Flow diagram */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+  font-size: 0.84rem;
+}
+.flow-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  font-weight: 500;
+  min-width: 0;
+}
+.flow-arrow { color: var(--fg-muted); font-size: 1.1rem; }
+
+/* Stats row */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+}
+.stat-val {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+  margin-top: 0.25rem;
+  letter-spacing: 0.02em;
+}
+.stat-val.green { color: var(--green); }
+.stat-val.accent { color: var(--accent); }
+
+/* Experiment cards */
+.exp-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin: 0.75rem 0;
+}
+.exp-card h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.exp-card p { font-size: 0.88rem; margin: 0; }
+
+/* List */
+ul { padding-left: 1.25rem; margin: 0.5rem 0; }
+li { margin-bottom: 0.3rem; font-size: 0.92rem; }
+
+@media (max-width: 600px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .arch-grid { grid-template-columns: 1fr; }
+  nav { gap: 1rem; }
+}
+</style>
+
+<div class="wrapper">
+
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#completed">Results</a>
+  <a href="#analysis">Analysis</a>
+  <a href="#infra">Infrastructure</a>
+  <a href="#planned">Roadmap</a>
+  <a href="#code">Code</a>
+</nav>
+
+<header>
+  <h1>Small-Judge Specialist-SQL for ClaimDB</h1>
+  <p class="subtitle">
+    Can a small open-source LLM judge verify database claims more accurately by delegating SQL generation to a specialist NL2SQL model?
+    A systematic evaluation on the ClaimDB benchmark using BIRD dev databases.
+  </p>
+  <div style="margin-top: 1rem;">
+    <span class="badge badge-done">Midsem complete</span>
+    <span class="badge badge-progress">Endsem in progress</span>
+  </div>
+</header>
+
+<!-- Overview -->
+<section id="overview">
+  <h2>Research Question</h2>
+  <p>
+    <a href="https://github.com/claimdb/claimdb" target="_blank" rel="noopener">ClaimDB</a> is a benchmark for claim verification over relational databases. A judge LLM receives a natural-language claim and must label it <strong>ENTAILED</strong>, <strong>CONTRADICTED</strong>, or <strong>NOT ENOUGH INFO</strong> by querying a SQLite database.
+  </p>
+  <p>
+    Small open-source judges (≤14B parameters) struggle with SQL generation — about 35–55% of their SQL calls return errors. We test whether delegating SQL writing to a dedicated NL2SQL specialist model improves accuracy without scaling the judge.
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val accent">76.0%</div>
+      <div class="stat-label">Best accuracy (Setup C)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val green">+20pt</div>
+      <div class="stat-label">Over judge-writes-SQL baseline</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">1,000</div>
+      <div class="stat-label">Claims evaluated (full run)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">11</div>
+      <div class="stat-label">BIRD databases</div>
+    </div>
+  </div>
+</section>
+
+<!-- Experimental Conditions -->
+<section id="conditions">
+  <h2>Experimental Conditions</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Setup</th>
+          <th>Who writes SQL?</th>
+          <th>Schema given to judge?</th>
+          <th>Question answered</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>A</strong></td>
+          <td>Judge (Qwen3-8B)</td>
+          <td>No — must discover via sqlite_master</td>
+          <td>ClaimDB reproduction baseline</td>
+        </tr>
+        <tr>
+          <td><strong>B</strong></td>
+          <td>Judge (Qwen3-8B)</td>
+          <td>Yes — CREATE TABLE DDL in prompt</td>
+          <td>Does knowing the schema help the judge?</td>
+        </tr>
+        <tr>
+          <td><strong>C</strong></td>
+          <td>Arctic-Text2SQL-R1-7B specialist</td>
+          <td>No</td>
+          <td>Does delegating SQL to a specialist help?</td>
+        </tr>
+        <tr>
+          <td><strong>C+values</strong></td>
+          <td>Arctic specialist + example column values</td>
+          <td>No</td>
+          <td>Do example values further help the specialist?</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Condition C data flow</h3>
+  <div class="flow">
+    <div class="flow-step">Claim + extra info</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color: var(--accent);">Judge (Qwen3-8B)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">NL question</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color: var(--green);">Arctic specialist</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">SQL + result</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color: var(--accent);">Verdict</div>
+  </div>
+</section>
+
+<!-- Completed Results -->
+<section id="completed">
+  <h2>Completed Experiments <span class="badge badge-done">Published</span></h2>
+
+  <h3>Full run — 1,000 claims (all BIRD dev databases)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Setup</th>
+          <th>Judge</th>
+          <th>Builder</th>
+          <th class="num">Accuracy</th>
+          <th class="num">95% CI</th>
+          <th class="num">Macro-F1</th>
+          <th>Significance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ClaimDB ref.</td>
+          <td>Qwen3-8B</td>
+          <td>—</td>
+          <td class="num">52.1%</td>
+          <td class="num">—</td>
+          <td class="num">—</td>
+          <td>Their released run</td>
+        </tr>
+        <tr>
+          <td><strong>A</strong></td>
+          <td>Qwen3-8B</td>
+          <td>—</td>
+          <td class="num">56.0%</td>
+          <td class="num">52.7–59.2%</td>
+          <td class="num">0.52</td>
+          <td>Our baseline</td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>C</strong></td>
+          <td>Qwen3-8B</td>
+          <td>Arctic-7B</td>
+          <td class="num"><strong>76.0%</strong></td>
+          <td class="num">73.1–78.8%</td>
+          <td class="num">0.75</td>
+          <td>p &lt; 0.001 vs A (McNemar)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>210-claim pilot (70 per label, balanced)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Setup</th>
+          <th>Judge</th>
+          <th>Builder</th>
+          <th class="num">Accuracy</th>
+          <th class="num">95% CI</th>
+          <th>Significance vs A</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>A</strong></td>
+          <td>Qwen3-8B</td>
+          <td>—</td>
+          <td class="num">59.0%</td>
+          <td class="num">52.1–65.2%</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>B</strong></td>
+          <td>Qwen3-8B</td>
+          <td>—</td>
+          <td class="num">61.0%</td>
+          <td class="num">54.3–67.6%</td>
+          <td>p = 0.70 (not significant)</td>
+        </tr>
+        <tr>
+          <td><strong>C</strong></td>
+          <td>Qwen3-8B</td>
+          <td>Arctic-7B</td>
+          <td class="num"><strong>74.3%</strong></td>
+          <td class="num">68.1–80.0%</td>
+          <td>p &lt; 0.001</td>
+        </tr>
+        <tr>
+          <td><strong>C+values</strong></td>
+          <td>Qwen3-8B</td>
+          <td>Arctic-7B + vals</td>
+          <td class="num">78.1%</td>
+          <td class="num">72.4–83.3%</td>
+          <td>p = 0.23 vs C (not sig.)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Analysis -->
+<section id="analysis">
+  <h2>Error Analysis</h2>
+  <p>
+    Claims were grouped by query-error type to understand <em>where</em> the specialist helps.
+    On ENTAILED and CONTRADICTED claims only (NOT ENOUGH INFO excluded):
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Query outcome group</th>
+          <th class="num">n (A)</th>
+          <th class="num">Acc (A)</th>
+          <th class="num">n (C)</th>
+          <th class="num">Acc (C)</th>
+          <th>Key finding</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>All queries ran successfully</td>
+          <td class="num">86</td>
+          <td class="num">75.6%</td>
+          <td class="num">115</td>
+          <td class="num">80.0%</td>
+          <td>Specialist gets more claims into "clean" territory</td>
+        </tr>
+        <tr>
+          <td>Hit missing-table/column error</td>
+          <td class="num">35</td>
+          <td class="num">22.9%</td>
+          <td class="num">12</td>
+          <td class="num">50.0%</td>
+          <td>Specialist drastically reduces grounding errors</td>
+        </tr>
+        <tr>
+          <td>Other query error</td>
+          <td class="num">16</td>
+          <td class="num">50.0%</td>
+          <td class="num">7</td>
+          <td class="num">42.9%</td>
+          <td>Smaller group, similar accuracy</td>
+        </tr>
+        <tr>
+          <td>Never queried the database</td>
+          <td class="num">3</td>
+          <td class="num">33.3%</td>
+          <td class="num">6</td>
+          <td class="num">50.0%</td>
+          <td>Rare; judge sometimes skips tool use</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    The specialist's advantage comes primarily from eliminating schema-grounding errors (missing table/column) — these drop from 25% of claims to 9%. When queries <em>do</em> run cleanly, both setups perform similarly (~75–80%), confirming that the judge's reasoning is adequate once it gets good data.
+  </p>
+</section>
+
+<!-- Infrastructure -->
+<section id="infra">
+  <h2>Infrastructure &amp; Sweep Framework</h2>
+
+  <div class="arch-grid">
+    <div class="arch-box">
+      <h4>run_judge.py</h4>
+      <p>Core evaluation loop. pydantic_ai Agent with tool-calling against SQLite. Supports conditions A/B/C/CS.</p>
+    </div>
+    <div class="arch-box">
+      <h4>builder.py</h4>
+      <p>NL2SQL specialist wrapper. Supports Arctic, OmniSQL, FINER-SQL prompt templates via OpenAI-compatible API or HuggingFace.</p>
+    </div>
+    <div class="arch-box">
+      <h4>providers.py</h4>
+      <p>Provider abstraction for Ollama (local GPU), Groq (free cloud), OpenRouter. Live model catalog validation.</p>
+    </div>
+    <div class="arch-box">
+      <h4>sweep_lib.py</h4>
+      <p>Error-aware retry engine. Classifies failures (dead model, rate limit, too large, transient) with adaptive backoff.</p>
+    </div>
+    <div class="arch-box">
+      <h4>sweep_judges.py</h4>
+      <p>Multi-model judge sweep: 6+ open-source models × conditions A/C. Resumable JSONL output.</p>
+    </div>
+    <div class="arch-box">
+      <h4>score.py</h4>
+      <p>Scoring with bootstrap CIs, macro-F1, per-class recall, exact McNemar test for pairwise comparison.</p>
+    </div>
+  </div>
+
+  <h3>Compute</h3>
+  <ul>
+    <li><strong>Midsem runs:</strong> NVIDIA RTX 4070 Super (personal GPU), ~30–60 min per 210-claim condition</li>
+    <li><strong>Endsem runs:</strong> BITS Pilani Sharanga HPC — A100, H100, H200, V100 partitions via SLURM</li>
+    <li><strong>Cloud fallback:</strong> Groq / OpenRouter free-tier APIs for rapid iteration</li>
+  </ul>
+</section>
+
+<!-- Planned / Roadmap -->
+<section id="planned">
+  <h2>Endsem Experiment Roadmap</h2>
+
+  <div class="exp-card">
+    <h4><span class="badge badge-progress">In progress</span> 6+ Open-Source Model Comparison (Condition A)</h4>
+    <p>
+      Evaluate 2–3 Qwen (qwen3:4b, qwen3:8b, qwen3:14b), 2 Mistral (mistral:7b, mistral-nemo:12b), and 2 LLaMA (llama3.2:3b, llama3.1:8b) judges under Condition A to establish model-specific baselines across the small-model spectrum.
+    </p>
+  </div>
+
+  <div class="exp-card">
+    <h4><span class="badge badge-planned">Planned</span> NL2SQL Builder Variations</h4>
+    <p>
+      Test Arctic-Text2SQL-R1-7B as the builder with different judges: Qwen3-8B (done), Llama3.1-8B, and other models from the comparison above. Also evaluate alternative builders: OmniSQL, FINER-SQL/SLM-SQL.
+    </p>
+  </div>
+
+  <div class="exp-card">
+    <h4><span class="badge badge-planned">Planned</span> Arctic Self-Delegation Baseline</h4>
+    <p>
+      Use Arctic-Text2SQL-R1-7B as <em>both</em> judge and builder — a self-delegation control to determine if the specialist advantage comes from task separation or the specialist model itself.
+    </p>
+  </div>
+
+  <div class="exp-card">
+    <h4><span class="badge badge-planned">Planned</span> Tool-Call Tracking</h4>
+    <p>
+      Instrument the number of tool calls per claim as an efficiency metric. Hypothesis: the specialist reduces wasted calls (retries on bad SQL) so the judge converges faster.
+    </p>
+  </div>
+
+  <div class="exp-card">
+    <h4><span class="badge badge-planned">Planned</span> TableFact Dataset</h4>
+    <p>
+      Extend evaluation to the TableFact dataset (Chen et al., 2020) as a secondary benchmark with flat tables, testing generalization beyond BIRD's relational schemas.
+    </p>
+  </div>
+</section>
+
+<!-- Code -->
+<section id="code">
+  <h2>Repository Structure</h2>
+  <pre><code>claimdb-specialist-sql/
+├── code/
+│   ├── run_judge.py          # Core judge evaluation loop
+│   ├── builder.py            # NL2SQL specialist wrapper
+│   ├── common.py             # Shared: prompts, data loading, SQL exec
+│   ├── score.py              # Scoring, bootstrap CI, McNemar test
+│   ├── eval_builder.py       # Standalone builder accuracy test
+│   ├── make_subset.py        # Balanced claim subset generator
+│   ├── plots.py              # Publication figures
+│   ├── diagnose_claimdb.py   # ClaimDB transcript analysis
+│   ├── test_harness.py       # Integration tests (no LLM needed)
+│   ├── providers.py          # Ollama/Groq/OpenRouter abstraction
+│   ├── check_providers.py    # Validate provider connectivity
+│   ├── sweep_lib.py          # Error-aware retry engine
+│   ├── sweep_judges.py       # Multi-model judge sweep
+│   ├── sweep_builders.py     # Multi-builder sweep
+│   ├── sweep_arctic.py       # Arctic self-delegation sweep
+│   ├── aggregate_results.py  # Cross-sweep result aggregation
+│   ├── sharanga_setup.sh     # HPC environment setup
+│   ├── sharanga_job.sbatch   # SLURM job template
+│   └── requirements.txt
+├── data/
+│   ├── subset_60.jsonl       # 60 claims (20 per label)
+│   ├── subset_150.jsonl      # 150 claims (50 per label)
+│   └── subset_210.jsonl      # 210 claims (70 per label)
+└── docs/
+    └── index.html            # This page (GitHub Pages)</code></pre>
+</section>
+
+<!-- Footer -->
+<section style="border-bottom: none; padding: 1rem 0 0;">
+  <p style="font-size: 0.82rem; color: var(--fg-muted);">
+    BITS Pilani · Independent Learning Lab Module (ILLM) · 2026
+  </p>
+</section>
+
+</div>
+</code></pre>
