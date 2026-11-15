@@ -1,6 +1,6 @@
 #!/bin/bash
 # Condition C runner: judge SLM + Arctic NL2SQL builder, both served by Ollama.
-# Results go to results/<name>/<claimset>/results.jsonl. Runs passes until every claim is done,
+# Results go to results/<name>/<builder>/<claimset>/results.jsonl. Runs passes until every claim is done,
 # resumes after crashes, and kills a pass that writes nothing for --stall-min minutes.
 #
 #   ./run_C.sh --model ministral-3:3b --name ministral-3b
@@ -18,8 +18,10 @@ OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434/v1}"
 RESULTS_ROOT="$REPO_DIR/results"
 STALL_MIN=20
 MAX_IDLE_PASSES=3
-# errors that mean the server failed (not the model): these lines are dropped and retried
-RETRY_ERRORS='status_code: (429|5[0-9][0-9])|Connection error|APIConnectionError|ConnectError|ReadTimeout'
+# errors that mean the server/infrastructure failed (not the model): these lines are dropped and retried.
+# Other HTTP 500s (e.g. Ollama failing to parse a malformed tool call the model wrote) are the model's
+# fault: they stay as failed runs and count as wrong, like the 20-call limit.
+RETRY_ERRORS='status_code: (429|502|503|504)|Connection error|APIConnectionError|ConnectError|ReadTimeout|runner process (has terminated|no longer running)|unexpectedly stopped|model failed to load|out of memory'
 
 usage() {
   cat <<EOF
@@ -27,10 +29,11 @@ Usage: $0 --model <ollama judge tag> [options]
   --model TAG          judge model, e.g. ministral-3:3b            (required)
   --name NAME          results folder name (default: tag with / and : replaced by _)
   --builder TAG        NL2SQL builder Ollama tag                   (default: $BUILDER)
+  --builder-name NAME  builder folder name (default: last part of the tag, e.g. Arctic-Text2SQL-R1-7B)
   --claims FILE        claims .jsonl, relative to code/ or absolute (default: $CLAIMS)
   --db-root DIR        BIRD dev_databases folder                   (default: \$BIRD_DB_ROOT or ~/bird/dev_databases)
   --ollama-url URL     Ollama OpenAI-compatible URL                (default: \$OLLAMA_URL or http://localhost:11434/v1)
-  --results-root DIR   where results/<name>/<claimset>/ is created (default: <repo>/results)
+  --results-root DIR   where <name>/<builder>/<claimset>/ is created (default: <repo>/results)
   --stall-min N        kill a pass that writes nothing for N minutes (default: $STALL_MIN)
   --once               run a single pass only (no retry loop)
 EOF
@@ -38,11 +41,16 @@ EOF
 }
 
 ONCE=0
+BUILDER_NAME=""
+# builder folder name: last part of the tag, without the ":quant" suffix
+# (a-kore/Arctic-Text2SQL-R1-7B -> Arctic-Text2SQL-R1-7B)
+builder_name() { local b="${1##*/}"; echo "${b%%:*}"; }
 while [ $# -gt 0 ]; do
   case "$1" in
     --model) MODEL="$2"; shift 2 ;;
     --name) NAME="$2"; shift 2 ;;
     --builder) BUILDER="$2"; shift 2 ;;
+    --builder-name) BUILDER_NAME="$2"; shift 2 ;;
     --claims) CLAIMS="$2"; shift 2 ;;
     --db-root) DB_ROOT="$2"; shift 2 ;;
     --ollama-url) OLLAMA_URL="$2"; shift 2 ;;
@@ -61,15 +69,16 @@ cd "$CODE_DIR" || exit 1
 [ -d "$DB_ROOT" ] || { echo "BIRD db root not found: $DB_ROOT"; exit 1; }
 
 [ -z "$NAME" ] && NAME="$(echo "$MODEL" | tr '/:' '__')"
+[ -z "$BUILDER_NAME" ] && BUILDER_NAME="$(builder_name "$BUILDER")"
 CLAIMSET="$(basename "$CLAIMS" .jsonl)"
-OUT_DIR="$RESULTS_ROOT/$NAME/$CLAIMSET"
+OUT_DIR="$RESULTS_ROOT/$NAME/$BUILDER_NAME/$CLAIMSET"
 OUT="$OUT_DIR/results.jsonl"
 LOG="$OUT_DIR/run.log"
 mkdir -p "$OUT_DIR/backups"
 TOTAL=$(grep -c . "$CLAIMS")
 
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S %Z') | $*" | tee -a "$OUT_DIR/passes.log"; }
-count() { [ -f "$OUT" ] && grep -c . "$OUT" || echo 0; }
+count() { if [ -f "$OUT" ]; then grep -c . "$OUT"; else echo 0; fi; }
 mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
 
 # only one pass per output file at a time

@@ -19,14 +19,18 @@ nohup ./run_C.sh --model ministral-3:3b --name ministral-3b > /dev/null 2>&1 &
 nohup ./run_C.sh --model ministral-3:8b --name ministral-8b > /dev/null 2>&1 &   # or after the first finishes
 
 # another claim set: just point --claims at it
-nohup ./run_C.sh --model ministral-3:8b --name ministral-8b --claims subsets/subset_1000.jsonl > /dev/null 2>&1 &
+nohup ./run_C.sh --model ministral-3:8b --name ministral-8b --claims subsets/test-public.jsonl > /dev/null 2>&1 &
+
+# another builder (Section 3): just change --builder; results go to a separate builder folder
+nohup ./run_C.sh --model ministral-3:8b --name ministral-8b --builder <omnisql-ollama-tag> --claims subsets/test-public.jsonl > /dev/null 2>&1 &
 
 # score (finds the folder itself; writes score.txt next to the results)
-./score_C.sh --name ministral-3b
+./score_C.sh --name ministral-3b                     # Arctic builder, subset_210 by default
+./score_C.sh --name ministral-8b --builder <omnisql-ollama-tag> --claims subsets/test-public.jsonl
 ./score_C.sh --all
 ```
 
-Results layout: `results/<name>/<claimset>/` with `results.jsonl` (one line per claim), `run.log` (per-claim lines),
+Results layout: `results/<name>/<builder>/<claimset>/` (builder folder = last part of the builder tag, e.g. `Arctic-Text2SQL-R1-7B`; override with `--builder-name`) with `results.jsonl` (one line per claim), `run.log` (per-claim lines),
 `passes.log` (one line per pass), `score.txt`, and `backups/`.
 
 `run_C.sh` options: `--model` (required), `--name`, `--builder` (default `a-kore/Arctic-Text2SQL-R1-7B`),
@@ -36,6 +40,16 @@ It loops until every claim has a line, kills a pass that writes nothing for `--s
 passes drops only lines that failed because the *server* failed (HTTP 429/5xx, connection errors) so they are retried.
 Model-side failures (20-call limit, crashes) are kept and count as wrong, as in ClaimDB.
 Running two judges at the same time on one GPU can run out of memory; running them one after the other is safer.
+
+### Pipeline 1 (Condition A: the judge writes its own SQL, no builder)
+
+Same options as `run_C.sh` minus `--builder`. Results go to `results/<name>/<claimset>/`.
+
+```bash
+nohup ./run_A.sh --model ministral-3:8b --name ministral-8b --claims subsets/test-public.jsonl > /dev/null 2>&1 &
+./score_A.sh --name ministral-8b --claims subsets/test-public.jsonl
+./score_A.sh --all          # every A run (results/*/*/); score_C.sh --all only picks up C runs (results/*/*/*/)
+```
 
 What this runs, on the same ClaimDB claims:
 
