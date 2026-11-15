@@ -1,7 +1,7 @@
 """Plumbing test without any LLM: scripted models drive the real tools on a toy database."""
 import sys, json, asyncio, types
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "core"))
 from pydantic_ai.models.function import FunctionModel, AgentInfo
 from pydantic_ai.messages import ModelResponse, ToolCallPart, ToolReturnPart
 import run_judge, common

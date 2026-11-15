@@ -1,55 +1,66 @@
 # SQL-Judge experiments: Conditions A, B, C on ClaimDB
 
-## Setup C runs (different judge SLMs, same Arctic builder) — quick start
+## Quick start (Navtej's runs: pipeline 1 and pipeline 2)
 
-Everything runs through Ollama (judge and builder). No API keys. Run from `code/`.
+Everything runs through Ollama (judge and builder). No API keys. **Run every command from this `Navtej/` folder.**
+
+```
+Navtej/
+├── core/          shared Python: run_judge.py (both pipelines), common.py, score.py,
+│                  builder.py (pipeline 2 only), eval_builder.py, make_subset.py
+├── pipeline1_A/   run_A.sh, score_A.sh   judge writes its own SQL (Condition A)
+├── pipeline2_C/   run_C.sh, score_C.sh   judge asks an NL2SQL builder (Condition C)
+├── subsets/       claim files; test-public.jsonl = the 1,000 ClaimDB test claims
+├── tests/
+└── results/       created by the scripts when you run; not on GitHub
+    ├── pipeline1_A/<model>/<claimset>/
+    └── pipeline2_C/<model>/<builder>/<claimset>/
+```
+
+Each results folder holds `results.jsonl` (one line per claim), `run.log` (per-claim lines),
+`passes.log` (one line per pass), `score.txt` and `backups/`.
 
 ```bash
 # once, on the GPU machine
-ollama pull a-kore/Arctic-Text2SQL-R1-7B     # builder (same for every run)
+ollama pull a-kore/Arctic-Text2SQL-R1-7B     # builder for pipeline 2
 ollama pull ministral-3:3b                    # judges
 ollama pull ministral-3:8b
 python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
 export BIRD_DB_ROOT=/path/to/bird/dev_databases    # folder with the 11 BIRD dev databases
-# start Ollama with a 16k context if it isn't already running as a service:
-OLLAMA_CONTEXT_LENGTH=16384 ollama serve &
+OLLAMA_CONTEXT_LENGTH=16384 ollama serve &         # if Ollama isn't already running
 
-# run (survives logout; each run resumes where it stopped)
-nohup ./run_C.sh --model ministral-3:3b --name ministral-3b > /dev/null 2>&1 &
-nohup ./run_C.sh --model ministral-3:8b --name ministral-8b > /dev/null 2>&1 &   # or after the first finishes
+# pipeline 1: judge writes SQL
+nohup ./pipeline1_A/run_A.sh --model ministral-3:8b --name ministral-8b --claims subsets/test-public.jsonl > /dev/null 2>&1 &
 
-# another claim set: just point --claims at it
-nohup ./run_C.sh --model ministral-3:8b --name ministral-8b --claims subsets/test-public.jsonl > /dev/null 2>&1 &
+# pipeline 2: judge + Arctic builder (default builder)
+nohup ./pipeline2_C/run_C.sh --model ministral-3:8b --name ministral-8b --claims subsets/test-public.jsonl > /dev/null 2>&1 &
 
-# another builder (Section 3): just change --builder; results go to a separate builder folder
-nohup ./run_C.sh --model ministral-3:8b --name ministral-8b --builder <omnisql-ollama-tag> --claims subsets/test-public.jsonl > /dev/null 2>&1 &
+# pipeline 2 with another builder (Section 3): change --builder; it gets its own builder folder
+nohup ./pipeline2_C/run_C.sh --model ministral-3:8b --name ministral-8b --builder <omnisql-ollama-tag> --claims subsets/test-public.jsonl > /dev/null 2>&1 &
 
-# score (finds the folder itself; writes score.txt next to the results)
-./score_C.sh --name ministral-3b                     # Arctic builder, subset_210 by default
-./score_C.sh --name ministral-8b --builder <omnisql-ollama-tag> --claims subsets/test-public.jsonl
-./score_C.sh --all
+# scoring (finds the folder itself; writes score.txt next to the results)
+./pipeline1_A/score_A.sh --name ministral-8b --claims subsets/test-public.jsonl
+./pipeline2_C/score_C.sh --name ministral-8b --claims subsets/test-public.jsonl
+./pipeline1_A/score_A.sh --all
+./pipeline2_C/score_C.sh --all
 ```
 
-Results layout: `results/<name>/<builder>/<claimset>/` (builder folder = last part of the builder tag, e.g. `Arctic-Text2SQL-R1-7B`; override with `--builder-name`) with `results.jsonl` (one line per claim), `run.log` (per-claim lines),
-`passes.log` (one line per pass), `score.txt`, and `backups/`.
+Options (both run scripts): `--model` (required), `--name` (results folder name), `--claims` (default
+`subsets/subset_210.jsonl`; use `subsets/test-public.jsonl` for the 1,000-claim runs), `--db-root` (or `$BIRD_DB_ROOT`),
+`--ollama-url` (or `$OLLAMA_URL`, default `http://localhost:11434/v1`), `--results-root` (top results folder, default
+`Navtej/results`; the pipeline folder is added under it, so e.g. a Google Drive path works on Colab),
+`--stall-min` (default 20), `--once`. `run_C.sh` also takes `--builder` (default `a-kore/Arctic-Text2SQL-R1-7B`) and
+`--builder-name` (folder name; default is the last part of the tag, e.g. `Arctic-Text2SQL-R1-7B`).
 
-`run_C.sh` options: `--model` (required), `--name`, `--builder` (default `a-kore/Arctic-Text2SQL-R1-7B`),
-`--claims` (default `subsets/subset_210.jsonl`), `--db-root` (or `$BIRD_DB_ROOT`), `--ollama-url` (or `$OLLAMA_URL`,
-default `http://localhost:11434/v1`), `--results-root`, `--stall-min` (default 20), `--once`.
-It loops until every claim has a line, kills a pass that writes nothing for `--stall-min` minutes, and between
-passes drops only lines that failed because the *server* failed (HTTP 429/5xx, connection errors) so they are retried.
-Model-side failures (20-call limit, crashes) are kept and count as wrong, as in ClaimDB.
-Running two judges at the same time on one GPU can run out of memory; running them one after the other is safer.
+The run scripts loop until every claim has a line and resume after crashes. A pass that writes nothing for
+`--stall-min` minutes is killed and restarted. Between passes, only infrastructure failures (HTTP 429/502/503/504,
+connection errors, Ollama crashes) are dropped and retried. Model-side failures (20-call limit, malformed tool calls,
+other errors) are kept and count as wrong, as in ClaimDB. Run one judge at a time per GPU to avoid running out of memory.
 
-### Pipeline 1 (Condition A: the judge writes its own SQL, no builder)
+## Background (original harness notes)
 
-Same options as `run_C.sh` minus `--builder`. Results go to `results/<name>/<claimset>/`.
-
-```bash
-nohup ./run_A.sh --model ministral-3:8b --name ministral-8b --claims subsets/test-public.jsonl > /dev/null 2>&1 &
-./score_A.sh --name ministral-8b --claims subsets/test-public.jsonl
-./score_A.sh --all          # every A run (results/*/*/); score_C.sh --all only picks up C runs (results/*/*/*/)
-```
+The notes below come from the original harness. Commands there use the old flat layout (`python run_judge.py` from
+`code/`); in this folder the same programs are in `core/`, e.g. `python core/run_judge.py ...`.
 
 What this runs, on the same ClaimDB claims:
 

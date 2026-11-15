@@ -2,13 +2,13 @@
 # Score Condition A (pipeline 1) results: finds results/<name>/<claimset>/results.jsonl,
 # runs score.py on it and saves score.txt next to it.
 #
-#   ./score_A.sh --name ministral-8b --claims subsets/test-public.jsonl
-#   ./score_A.sh --all                                    (every results/*/*/results.jsonl, i.e. all A runs)
+#   ./pipeline1_A/score_A.sh --name ministral-8b --claims subsets/test-public.jsonl
+#   ./pipeline1_A/score_A.sh --all                                    (every results/*/*/results.jsonl, i.e. all A runs)
 #   add --claimdb-release <file> for the per-claim ClaimDB comparison
 set -u
-CODE_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_DIR="$(dirname "$CODE_DIR")"
-RESULTS_ROOT="$REPO_DIR/results"
+# everything is resolved from the Navtej/ folder (one level above this script)
+NAVTEJ_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+RESULTS_BASE="$NAVTEJ_DIR/results"
 NAME=""; MODEL=""; CLAIMS="subsets/subset_210.jsonl"; ALL=0; RELEASE=""
 
 while [ $# -gt 0 ]; do
@@ -16,21 +16,22 @@ while [ $# -gt 0 ]; do
     --name) NAME="$2"; shift 2 ;;
     --model) MODEL="$2"; shift 2 ;;
     --claims) CLAIMS="$2"; shift 2 ;;
-    --results-root) RESULTS_ROOT="$2"; shift 2 ;;
+    --results-root) RESULTS_BASE="$2"; shift 2 ;;
     --claimdb-release) RELEASE="$2"; shift 2 ;;
     --all) ALL=1; shift ;;
     *) echo "usage: $0 (--name NAME | --model TAG | --all) [--claims FILE] [--claimdb-release FILE] [--results-root DIR]"; exit 1 ;;
   esac
 done
 
-cd "$CODE_DIR" || exit 1
+RESULTS_ROOT="$RESULTS_BASE/pipeline1_A"
+cd "$NAVTEJ_DIR" || exit 1
 [ -f .venv/bin/activate ] && source .venv/bin/activate
 EXTRA=(); [ -n "$RELEASE" ] && EXTRA=(--claimdb-release "$RELEASE")
 
 score_one() {
   local f="$1"; local d; d="$(dirname "$f")"
   echo "== $d"
-  python score.py "$f" ${EXTRA[@]+"${EXTRA[@]}"} 2>&1 | tee "$d/score.txt"
+  python core/score.py "$f" ${EXTRA[@]+"${EXTRA[@]}"} 2>&1 | tee "$d/score.txt"
 }
 
 if [ "$ALL" = 1 ]; then
