@@ -1,0 +1,70 @@
+2026-11-03 13:38:51  runner started
+2026-11-03 13:38:51  start [d92d7af5b681] ollama list
+2026-11-03 13:38:59  end   [d92d7af5b681] rc=0 after 0.1 min
+2026-11-03 13:38:59  start [4cc04f2bee74] echo CTX=%OLLAMA_CONTEXT_LENGTH% & ollama --version
+2026-11-03 13:38:59  end   [4cc04f2bee74] rc=0 after 0.0 min
+2026-11-03 13:38:59  start [6b3e6a6f9920] ollama pull qwen3:4b
+2026-11-03 13:41:57  end   [6b3e6a6f9920] rc=0 after 3.0 min
+2026-11-03 13:41:57  start BG [b2217570cbdc] ollama pull llama3.1:8b && ollama pull ministral-3:8b
+2026-11-03 13:41:57  start [450a397f1aa9] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+2026-11-04 00:51:37  end   [450a397f1aa9] rc=0 after 669.7 min
+2026-11-04 00:51:37  start [47ca8bffc226] ollama pull llama3.1:8b
+2026-11-04 00:51:39  end   [47ca8bffc226] rc=0 after 0.0 min
+2026-11-04 00:51:39  start [44066def961e] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+2026-11-04 06:06:43  end   [44066def961e] rc=0 after 315.1 min
+2026-11-04 06:06:43  start [d3e686a0f585] ollama pull qwen3:1.7b
+2026-11-04 06:07:40  end   [d3e686a0f585] rc=0 after 1.0 min
+2026-11-04 06:07:40  start [56127f44da56] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+2026-11-04 08:18:00  end   [56127f44da56] rc=0 after 130.3 min
+2026-11-04 08:18:00  start [97cd0e832f7a] ollama pull llama3.2:3b
+2026-11-04 08:19:27  end   [97cd0e832f7a] rc=0 after 1.4 min
+2026-11-04 08:19:27  start [8d9f3b23297e] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+2026-11-04 11:35:39  end   [8d9f3b23297e] rc=0 after 196.2 min
+2026-11-04 11:35:39  start [b66952ab6640] ollama pull qwen3:14b
+2026-11-04 11:40:53  end   [b66952ab6640] rc=0 after 5.2 min
+2026-11-04 11:40:53  start [18037cc97c9a] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:14b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+2026-11-12 12:31:24  runner started
+2026-11-12 12:31:30  ollama is up
+2026-11-12 12:31:35  start [5afc09b45b2f] ollama pull hf.co/mradermacher/OmniSQL-7B-GGUF:Q8_0
+2026-11-12 12:53:41  runner started
+2026-11-12 12:53:42  ollama is up
+2026-11-12 12:53:47  start [b2452a57fd3c] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition A
+2026-11-15 04:51:08  runner started
+2026-11-15 04:51:15  ollama is up
+2026-11-15 04:51:20  start [fea51c28d11a] ollama --version & echo resumed-14-Nov
+2026-11-15 04:51:21  end   [fea51c28d11a] rc=0 after 0.0 min
+2026-11-15 04:51:21  start [ffff5dcb5ca4] python -m pip install -q scikit-learn numpy
+2026-11-15 04:51:52  end   [ffff5dcb5ca4] rc=0 after 0.5 min
+2026-11-15 04:51:52  start [d62d023004f5] ollama pull nomic-embed-text
+2026-11-15 04:53:04  end   [d62d023004f5] rc=0 after 1.2 min
+2026-11-15 04:53:04  start [4eab686b4f62] python ..\router\embed.py
+2026-11-15 05:24:04  end   [4eab686b4f62] rc=0 after 31.0 min
+2026-11-15 05:24:04  start [c1760a9fad09] python ..\router\train_router.py
+2026-11-15 05:25:59  end   [c1760a9fad09] rc=0 after 1.9 min
+2026-11-15 05:25:59  start [96470369c655] python ..\router\eval_routing.py
+2026-11-15 05:26:01  end   [96470369c655] rc=0 after 0.0 min
+2026-11-15 05:26:01  start [b2452a57fd3c] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition A
+2026-11-15 08:41:36  end   [b2452a57fd3c] rc=0 after 195.6 min
+2026-11-15 08:41:36  start [981aa3191283] python ..\router\eval_routing.py & echo after-qwen3:4b
+2026-11-15 08:41:37  end   [981aa3191283] rc=0 after 0.0 min
+2026-11-15 08:41:37  start [4890dbc7bd30] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition A
+2026-11-15 10:02:58  end   [4890dbc7bd30] rc=0 after 81.3 min
+2026-11-15 10:02:58  start [63e551d32ef4] python ..\router\eval_routing.py & echo after-llama3.1:8b
+2026-11-15 10:03:00  end   [63e551d32ef4] rc=0 after 0.0 min
+2026-11-15 10:03:00  start [3e64194be940] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition A
+2026-11-15 10:44:49  end   [3e64194be940] rc=0 after 41.8 min
+2026-11-15 10:44:49  start [9e4511f9bf43] python ..\router\eval_routing.py & echo after-qwen3:1.7b
+2026-11-15 10:44:52  end   [9e4511f9bf43] rc=0 after 0.0 min
+2026-11-15 10:44:52  start [dca8e108217e] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition A
+2026-11-15 11:39:57  end   [dca8e108217e] rc=0 after 55.1 min
+2026-11-15 11:39:57  start [389c0b8e4048] python ..\router\eval_routing.py & echo after-llama3.2:3b
+2026-11-15 11:40:00  end   [389c0b8e4048] rc=0 after 0.1 min
+2026-11-15 12:38:01  start [4a460798f45b] python run_judge.py --claims subsets\pilot30_S.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S --out ..\results\pilot\qwen3_8b__S__pilot30.jsonl
+2026-11-15 12:38:05  end   [4a460798f45b] rc=1 after 0.1 min
+2026-11-15 12:38:35  start [6300c966fbad] python run_judge.py --claims subsets\pilot30_S.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S --out ..\results\pilot\qwen3_8b__S__pilot30.jsonl & echo retry
+2026-11-15 12:49:59  end   [6300c966fbad] rc=0 after 11.4 min
+2026-11-15 12:49:59  start [31a7a81d93c5] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S
+2026-11-15 20:22:45  end   [31a7a81d93c5] rc=0 after 452.8 min
+2026-11-15 20:22:45  start [0e5c43c03cf6] python ..\router\eval_routing.py --cheap S & echo after-qwen3:8b-S
+2026-11-15 20:22:46  end   [0e5c43c03cf6] rc=0 after 0.0 min
+2026-11-15 20:22:46  start [1c20d53aceb3] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S

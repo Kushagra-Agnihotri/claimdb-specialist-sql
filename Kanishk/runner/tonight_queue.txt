@@ -1,0 +1,56 @@
+# Tonight queue. Each line runs once, in order. Edit freely; new lines are picked up.
+ollama list
+echo CTX=%OLLAMA_CONTEXT_LENGTH% & ollama --version
+ollama pull qwen3:4b
+BG: ollama pull llama3.1:8b && ollama pull ministral-3:8b
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+ollama pull llama3.1:8b
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+# Kanishk section 1 (added 3 Nov): more judges, same builder
+ollama pull qwen3:1.7b
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+ollama pull llama3.2:3b
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+# moved to Colab 11 Nov: ollama pull qwen3:14b
+# moved to Colab 11 Nov: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:14b --condition C --builder hf.co/mradermacher/Arctic-Text2SQL-R1-7B-GGUF:Q8_0
+# 12 Nov plan: A baselines + Section 3 grid (Kanishk), interleaved
+# moved to Colab 12 Nov: ollama pull hf.co/mradermacher/OmniSQL-7B-GGUF:Q8_0
+# moved to Colab 12 Nov: BG: ollama pull qwen2.5-coder:7b-instruct-q8_0
+# moved to Colab 12 Nov: BG: python -m pip install torch --index-url https://download.pytorch.org/whl/cu124 && python -m pip install transformers accelerate
+# moved to Colab 12 Nov: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition C --builder hf.co/mradermacher/OmniSQL-7B-GGUF:Q8_0
+ollama --version & echo resumed-14-Nov
+# 15 Nov: pathway #3 router (embeddings + MLP training + routing eval), then the A baselines continue
+python -m pip install -q scikit-learn numpy
+ollama pull nomic-embed-text
+python ..\router\embed.py
+python ..\router\train_router.py
+python ..\router\eval_routing.py
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition A
+python ..\router\eval_routing.py & echo after-qwen3:4b
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition A
+python ..\router\eval_routing.py & echo after-llama3.1:8b
+# moved to Colab 12 Nov: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition C --builder hf.co/mradermacher/OmniSQL-7B-GGUF:Q8_0
+# moved to Colab 12 Nov: ollama pull qwen2.5-coder:7b-instruct-q8_0
+# moved to Colab 12 Nov: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition C --builder qwen2.5-coder:7b-instruct-q8_0
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition A
+python ..\router\eval_routing.py & echo after-qwen3:1.7b
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition A
+python ..\router\eval_routing.py & echo after-llama3.2:3b
+# moved to Colab 12 Nov: python -m pip install torch --index-url https://download.pytorch.org/whl/cu124
+# moved to Colab 12 Nov: python -m pip install transformers accelerate
+# moved to Colab 12 Nov: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition C --builder cycloneboy/SLM-SQL-1.5B --builder-backend hf --builder-template omnisql
+# moved to Colab 12 Nov: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition C --builder cycloneboy/SLM-SQL-1.5B --builder-backend hf --builder-template omnisql
+# 15 Nov: simple path (condition S) pilot
+python run_judge.py --claims subsets\pilot30_S.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S --out ..\results\pilot\qwen3_8b__S__pilot30.jsonl
+python run_judge.py --claims subsets\pilot30_S.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S --out ..\results\pilot\qwen3_8b__S__pilot30.jsonl & echo retry
+# 15 Nov: simple path (condition S) on all 1000 claims, then routing with S as the cheap path
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S
+python ..\router\eval_routing.py --cheap S & echo after-qwen3:8b-S
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S
+python ..\router\eval_routing.py --cheap S & echo after-qwen3:4b-S
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition S
+python ..\router\eval_routing.py --cheap S & echo after-llama3.1:8b-S
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition S
+python ..\router\eval_routing.py --cheap S & echo after-qwen3:1.7b-S
+python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition S
+python ..\router\eval_routing.py --cheap S & echo after-llama3.2:3b-S

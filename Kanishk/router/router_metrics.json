@@ -1,0 +1,101 @@
+{
+ "complexity_strict__linear": {
+  "threshold": 0.47,
+  "val_auc": 0.6656,
+  "test_auc": 0.7186,
+  "test_bal_acc": 0.6488,
+  "test_acc": 0.674,
+  "test_f1_pos": 0.4437,
+  "test_pos_rate_true": 0.215,
+  "test_pos_rate_pred": 0.371,
+  "train_seconds": 1.1
+ },
+ "complexity_strict__mlp2": {
+  "threshold": 0.05,
+  "val_auc": 0.7115,
+  "test_auc": 0.6754,
+  "test_bal_acc": 0.6186,
+  "test_acc": 0.661,
+  "test_f1_pos": 0.4084,
+  "test_pos_rate_true": 0.215,
+  "test_pos_rate_pred": 0.358,
+  "train_seconds": 16.9
+ },
+ "complexity_strict__mlp3": {
+  "threshold": 0.05,
+  "val_auc": 0.673,
+  "test_auc": 0.6694,
+  "test_bal_acc": 0.6122,
+  "test_acc": 0.712,
+  "test_f1_pos": 0.395,
+  "test_pos_rate_true": 0.215,
+  "test_pos_rate_pred": 0.261,
+  "train_seconds": 17.7
+ },
+ "complexity_loose__linear": {
+  "threshold": 0.52,
+  "val_auc": 0.6373,
+  "test_auc": 0.6353,
+  "test_bal_acc": 0.5983,
+  "test_acc": 0.661,
+  "test_f1_pos": 0.7566,
+  "test_pos_rate_true": 0.692,
+  "test_pos_rate_pred": 0.701,
+  "train_seconds": 1.1
+ },
+ "complexity_loose__mlp2": {
+  "threshold": 0.94,
+  "val_auc": 0.6217,
+  "test_auc": 0.6133,
+  "test_bal_acc": 0.5736,
+  "test_acc": 0.658,
+  "test_f1_pos": 0.7625,
+  "test_pos_rate_true": 0.692,
+  "test_pos_rate_pred": 0.748,
+  "train_seconds": 14.8
+ },
+ "complexity_loose__mlp3": {
+  "threshold": 0.85,
+  "val_auc": 0.5913,
+  "test_auc": 0.6098,
+  "test_bal_acc": 0.5427,
+  "test_acc": 0.67,
+  "test_f1_pos": 0.7857,
+  "test_pos_rate_true": 0.692,
+  "test_pos_rate_pred": 0.848,
+  "train_seconds": 22.4
+ },
+ "answerability__linear": {
+  "threshold": 0.85,
+  "val_auc": 0.9639,
+  "test_auc": 0.9501,
+  "test_bal_acc": 0.876,
+  "test_acc": 0.888,
+  "test_f1_pos": 0.8343,
+  "test_pos_rate_true": 0.336,
+  "test_pos_rate_pred": 0.34,
+  "train_seconds": 1.1
+ },
+ "answerability__mlp2": {
+  "threshold": 0.87,
+  "val_auc": 0.9793,
+  "test_auc": 0.9541,
+  "test_bal_acc": 0.8766,
+  "test_acc": 0.882,
+  "test_f1_pos": 0.8305,
+  "test_pos_rate_true": 0.336,
+  "test_pos_rate_pred": 0.36,
+  "train_seconds": 7.7
+ },
+ "answerability__mlp3": {
+  "threshold": 0.95,
+  "val_auc": 0.9732,
+  "test_auc": 0.9443,
+  "test_bal_acc": 0.8787,
+  "test_acc": 0.877,
+  "test_f1_pos": 0.8285,
+  "test_pos_rate_true": 0.336,
+  "test_pos_rate_pred": 0.381,
+  "train_seconds": 23.4
+ }
+}

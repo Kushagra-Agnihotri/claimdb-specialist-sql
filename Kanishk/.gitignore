@@ -1,0 +1,6 @@
+# re-include results (the repo root .gitignore ignores results/)
+!results/
+!results/**
+router/emb_*.npy
+*.partial.npy
+__pycache__/

@@ -1,0 +1,4 @@
+pydantic-ai-slim[openai]==1.44.0
+openai>=1.40
+# only needed for --builder-backend hf (FINER-SQL / SLM-SQL without an Ollama build):
+# torch (CUDA build), transformers, accelerate
