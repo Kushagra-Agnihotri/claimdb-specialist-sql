@@ -46,11 +46,20 @@ python run_judge.py --claims subsets\pilot30_S.jsonl --db-root ..\data\dev_datab
 # 15 Nov: simple path (condition S) on all 1000 claims, then routing with S as the cheap path
 python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:8b --condition S
 python ..\router\eval_routing.py --cheap S & echo after-qwen3:8b-S
-python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S
-python ..\router\eval_routing.py --cheap S & echo after-qwen3:4b-S
-python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition S
-python ..\router\eval_routing.py --cheap S & echo after-llama3.1:8b-S
-python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition S
-python ..\router\eval_routing.py --cheap S & echo after-qwen3:1.7b-S
-python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition S
-python ..\router\eval_routing.py --cheap S & echo after-llama3.2:3b-S
+# replaced 21 Nov by subset_210 runs: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S
+# replaced 21 Nov by subset_210 runs: python ..\router\eval_routing.py --cheap S & echo after-qwen3:4b-S
+# replaced 21 Nov by subset_210 runs: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition S
+# replaced 21 Nov by subset_210 runs: python ..\router\eval_routing.py --cheap S & echo after-llama3.1:8b-S
+# replaced 21 Nov by subset_210 runs: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition S
+# replaced 21 Nov by subset_210 runs: python ..\router\eval_routing.py --cheap S & echo after-qwen3:1.7b-S
+# replaced 21 Nov by subset_210 runs: python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition S
+# replaced 21 Nov by subset_210 runs: python ..\router\eval_routing.py --cheap S & echo after-llama3.2:3b-S
+# 21 Nov: Sir 15 Nov note, subset only. S on subset_210 (70 per label, seed 13) for the 4 judges without S; A and C already exist for all 1000
+python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition S
+python ..\router\subset_report.py & echo after-qwen3:1.7b-S210
+python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition S
+python ..\router\subset_report.py & echo after-llama3.2:3b-S210
+python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition S
+python ..\router\subset_report.py & echo after-llama3.1:8b-S210
+python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S
+python ..\router\subset_report.py & echo after-qwen3:4b-S210

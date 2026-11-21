@@ -81,6 +81,14 @@ Routing with A as the cheap path (LR router):
 - Reading: with correct labels, one table claims can go to S at no accuracy loss and a third less time; the text only router cannot find them (AUC 0.72). That is the case for #4.
 - Status: qwen3:4b S was running on all 1,000 (about 175 done on 16 Nov); llama3.1:8b, qwen3:1.7b, llama3.2:3b queued. Sir's 15 Nov note says to use only subsets, so the plan is to restrict remaining S runs to the routed subsets (pending Kanishk's go ahead).
 
+## 5b. Subset plan (21 Nov, Sir's note: subset only, plan before running)
+- Subset: `code/subsets/subset_210.jsonl` (70 ENTAILED, 70 CONTRADICTED, 70 NEI, seed 13, all 11 DBs; same 210 as the midsem pilot). Inside it: 71 claims the non-answerable router sends to S (56 truly NEI), 75 the strict router calls simple, 41 truly one table.
+- No reruns of A or C: both exist on all 1,000 claims for 5 judges, the subset is a filter. qwen3:8b S exists on all 1,000. qwen3:4b S has 39 of the 210.
+- New runs (queued on the PC, 21 Nov): S on subset_210 for qwen3:1.7b, llama3.2:3b, llama3.1:8b, qwen3:4b (qwen3:4b resumes and runs only the missing 171). After each, `router/subset_report.py` rewrites `router/subset_report_subset_210.md`.
+- The report answers: (1) A vs S vs C accuracy, seconds and tool calls per claim (point 6, n calls); (2) S vs C on the claims the router sends to S (point 4); (3) S vs C on one table claims; (4) end to end routing on the subset, including "answer NEI directly".
+- qwen3:8b on subset_210: A 59.0, S 59.0, C 74.3; calls per claim 2.95 / 2.05 / 1.00. Routed claims (71): S 78.9 vs C 81.7, p = 0.83. Truly one table (41): S 75.6 vs C 80.5, p = 0.69.
+- Old full 1,000 S lines for the other judges are commented out in the queue.
+
 ## 6. Meet notes (15 Nov) and status
 - Show all three routes on examples with every intermediate step and prompts → `reports/Walkthrough_A_C_S.pdf` (claims 5584 and 1005).
 - What is answerability → non-answerable = gold NEI (336 of 1,000: 111 out of schema, 113 counterfactual, 112 subjective).
