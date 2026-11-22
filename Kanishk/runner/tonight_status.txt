@@ -68,3 +68,23 @@
 2026-11-15 20:22:45  start [0e5c43c03cf6] python ..\router\eval_routing.py --cheap S & echo after-qwen3:8b-S
 2026-11-15 20:22:46  end   [0e5c43c03cf6] rc=0 after 0.0 min
 2026-11-15 20:22:46  start [1c20d53aceb3] python run_judge.py --claims subsets\test-public.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S
+2026-11-22 00:50:58  runner started
+2026-11-22 00:51:06  ollama is up
+2026-11-22 00:51:11  start [c91008581646] python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:1.7b --condition S
+2026-11-22 01:06:02  end   [c91008581646] rc=0 after 14.9 min
+2026-11-22 01:06:02  start [e4fbd7a9d2f2] python ..\router\subset_report.py & echo after-qwen3:1.7b-S210
+2026-11-22 01:06:04  end   [e4fbd7a9d2f2] rc=0 after 0.0 min
+2026-11-22 01:06:04  start [7f1d6b0740d5] python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.2:3b --condition S
+2026-11-22 01:24:32  end   [7f1d6b0740d5] rc=0 after 18.5 min
+2026-11-22 01:24:33  start [581e158791bc] python ..\router\subset_report.py & echo after-llama3.2:3b-S210
+2026-11-22 01:24:34  end   [581e158791bc] rc=0 after 0.0 min
+2026-11-22 01:24:34  start [a290023073b3] python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model llama3.1:8b --condition S
+2026-11-22 02:01:35  end   [a290023073b3] rc=0 after 37.0 min
+2026-11-22 02:01:35  start [5f510e737219] python ..\router\subset_report.py & echo after-llama3.1:8b-S210
+2026-11-22 02:01:37  end   [5f510e737219] rc=0 after 0.0 min
+2026-11-22 02:01:37  start [87a375c16de6] python run_judge.py --claims subsets\subset_210.jsonl --db-root ..\data\dev_databases\dev_databases --model qwen3:4b --condition S
+2026-11-22 04:16:13  end   [87a375c16de6] rc=0 after 134.6 min
+2026-11-22 04:16:13  start [b8d76b799df8] python ..\router\subset_report.py & echo after-qwen3:4b-S210
+2026-11-22 04:16:15  end   [b8d76b799df8] rc=0 after 0.0 min
+2026-11-22 13:42:50  runner started
+2026-11-22 13:42:58  ollama is up
