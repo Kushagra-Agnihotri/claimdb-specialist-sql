@@ -49,10 +49,10 @@ def subtitle(ax, text, y=1.02):
 
 
 # ---------- Figure 3: our judge next to the ClaimDB models ----------
-rows = [("Claude Haiku 4.5", 80.9, GREY), ("Gemini 2.5 Flash", 79.3, GREY), ("GPT 5 nano", 78.7, GREY),
+rows = [("GPT 5 mini", 82.7, GREY), ("Claude Haiku 4.5", 80.9, GREY), ("Gemini 3 Flash", 80.1, GREY), ("Gemini 2.5 Flash", 79.3, GREY), ("GPT 5 nano", 78.7, GREY),
         ("Qwen3 14B + specialist", 76.5, C), ("Qwen3 8B + specialist", 76.0, C), ("gpt oss 20B", 74.0, GREY),
         ("Qwen3 32B", 57.4, GREY), ("Qwen3 8B alone", 56.0, A), ("Qwen3 14B", 53.1, GREY), ("Qwen3 8B", 52.1, GREY)]
-fig, ax = plt.subplots(figsize=(W, 6.4))
+fig, ax = plt.subplots(figsize=(W, 7.4))
 y = list(range(len(rows)))[::-1]
 ax.barh(y, [r[1] for r in rows], color=[r[2] for r in rows], height=0.66)
 ax.set_yticks(y, [r[0] for r in rows])

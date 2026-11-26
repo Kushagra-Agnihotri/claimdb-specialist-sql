@@ -264,7 +264,7 @@ fig12 = f"""
 <div class='down' style='font-size:26px;margin:8px 0'>↓</div>
 <div class='ph' style='background:#F5F3FF;border:2px solid {PUR}'><span class='tag' style='background:{PUR}'>Phase 2 · next</span>
 <h3>A router that can see the schema</h3><ul>
-<li>Today the one table router sends 75 claims to S, and only 41 of them need one table.</li>
+<li>Today the one table router sends 75 claims to S, and only 23 of them need one table.</li>
 <li>Fine tune a small language model on 46,486 labelled claims, with the schema as extra input.</li></ul></div>
 <div class='down' style='font-size:26px;margin:8px 0'>↓</div>
 <div class='ph' style='background:#EEF3FB;border:2px solid {C}'><span class='tag' style='background:{C}'>Unchanged</span>
