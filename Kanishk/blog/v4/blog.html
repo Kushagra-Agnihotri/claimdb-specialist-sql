@@ -1,0 +1,89 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Blog draft v4 (short)</title>
+<style>
+body{font-family:Georgia,serif;max-width:728px;margin:40px auto;padding:0 20px;color:#1f2937;line-height:1.65;font-size:19px}
+h1{font-family:Inter,sans-serif;font-size:34px;line-height:1.2}
+h2{font-family:Inter,sans-serif;font-size:25px;margin:38px 0 10px}
+h3{font-family:Inter,sans-serif;font-size:20px;margin:28px 0 8px}
+.subtitle{font-size:20px;color:#4b5563}
+figure{margin:24px 0}figure img{width:100%}
+figcaption{font-size:15px;color:#6b7280;text-align:center}
+hr{border:0;border-top:1px solid #d1d5db;margin:36px 0}
+</style></head><body>
+
+<h1>Can a Small Model with a SQL Specialist Check Database Claims as Well as Commercial LLMs?</h1>
+<div class="subtitle">Almost. An 8B judge that asks a SQL specialist in plain English goes from 56% to 76% on ClaimDB. We also tried a cheaper shortcut, and it only half worked.</div>
+
+<figure class="cover"><img src="COVER"></figure>
+
+<p class="byline">By Kushagra Agnihotri, Kanishk Didwania and Navtej Sai Singh Dua, BITS Pilani. Mentored by Prof. Dhruv Kumar, Dr. Krishna Garg and Dr. Chirag Chhablani.</p>
+
+<p>Every day we read numbers that come out of a database. A sports site says a league played 228 matches last season. A company dashboard says sales went up in March. Someone has to check that claims like these actually match the data.</p>
+<p>Large language models can do that job if you let them run SQL queries. The best ones are big commercial models, though. They cost money on every call and you can't run them on your own computer. We wanted to see how far a small open model could get instead.</p>
+<p>We used ClaimDB <a href="#r1">[1]</a>, a recent benchmark with 1,000 test claims over real databases, some with millions of rows. For each claim the model answers ENTAILED (the data backs it up), CONTRADICTED (the data says otherwise) or NOT ENOUGH INFO (the data can't settle it). We shorten the last one to NEI. In the ClaimDB paper, Qwen3 8B scores just 52.1%.</p>
+
+<h2>Why small models struggle</h2>
+<p>Small models rarely fail because they reason badly. They fail because they write bad SQL. Take the claim "The Scotland Premier League featured 228 matches in the 2015/2016 season." Qwen3 8B first asked for a table called matches, which doesn't exist. It then listed the tables, poked around a bit and gave up with NEI. The claim is true. One join between two tables would have shown it.</p>
+<p>This happens a lot. Look at ClaimDB's own runs of small open models on true or false claims. When a judge queried a missing table or column, it was right only about one time in five.</p>
+
+<h2>Three ways to check a claim</h2>
+<p>So we tried three setups (Figure 1). In all of them a small model, which we call the judge, reads the claim and gives the verdict. The only thing that changes is the tool it gets.</p>
+<p>In <b>setup A</b> the judge writes SQL itself. This is ClaimDB's own baseline. In <b>setup C</b> the judge asks a question in plain English. A second model trained only to write SQL, the specialist, turns that question into a query. Our specialist is Arctic Text2SQL R1 7B <a href="#r5">[5]</a>, and it sees the whole database layout, so it never has to guess names. <b>Setup S</b> is the lightweight option. The judge fills in a simple lookup form with one table, a few filters and maybe a count or a sum. About 250 lines of Python check the names, write the SQL and run it. No second model is involved.</p>
+<figure><img src="../v3/fig/fig1_three_setups.png"><figcaption><b>Figure 1.</b> The three setups we compare. Numbers are for Qwen3 8B on all 1,000 test claims.</figcaption></figure>
+
+<h2>The specialist makes the biggest difference</h2>
+<p>Handing the SQL to a specialist lifts Qwen3 8B from 56.0% to 76.0%. Figure 2 shows why, using the Scotland claim. The judge asks one question, the specialist joins the two tables, and 228 comes back.</p>
+<figure><img src="../v3/fig/fig2_claim5584_A_vs_C.gif"><figcaption><b>Figure 2.</b> The Scotland claim in setups A and C, with the real queries from our runs.</figcaption></figure>
+<p>That puts our 8B judge ahead of every open model in the ClaimDB paper. It also sits a few points behind small commercial models like GPT 5 nano (Figure 3). One caveat. Our harness scores Qwen3 8B about 4 points higher than ClaimDB's did, so part of that gap may come from the setup and not the specialist.</p>
+<figure><img src="../v3/fig/fig3_vs_claimdb.png"><figcaption><b>Figure 3.</b> Our runs next to the models reported in the ClaimDB paper.</figcaption></figure>
+<p>It isn't a lucky result for one model either. Every small judge we tried gained between 13 and 20 points (Figure 4). A bigger judge, Qwen3 14B, did no better than the 8B one. That tells us the SQL was the real bottleneck all along.</p>
+<figure><img src="../v3/fig/fig4_judges_A_vs_C.png"><figcaption><b>Figure 4.</b> The gain from adding the specialist, for five small judges.</figcaption></figure>
+
+<h2>The lookup tool is good at saying "I don't know"</h2>
+<p>Setup S on its own lands in the middle, at 61.8%. That is better than writing SQL but well short of the specialist. It does have one real strength, though. It is very good at recognising claims the database simply can't answer.</p>
+<p>Figure 5 shows a nice example. The claim says a client's junior credit card runs on the Mastercard network, but the database never stores card networks. The specialist couldn't answer the question it was asked, so it quietly answered a different one. It got an empty result back, and the judge took that as a no. With the lookup tool, the judge found the card, saw there was nothing about networks, and correctly said NEI.</p>
+<figure><img src="../v3/fig/fig7_claim1005_S_vs_C.gif"><figcaption><b>Figure 5.</b> A claim the database can't answer, in setups S and C.</figcaption></figure>
+<p>The form doesn't suit every judge. The Qwen models handled it well. The Llama models kept filling it in wrong, and many of their claims ended without any answer at all (Figure 6).</p>
+<figure><img src="../v3/fig/fig9_S_on_subset.png"><figcaption><b>Figure 6.</b> All three setups for five small judges, on a balanced sample of 210 claims.</figcaption></figure>
+
+<h2>Sending each claim to the right place</h2>
+<p>If S is good at unanswerable claims and C is good at the rest, the obvious next step is a router. That is a small classifier that reads the claim and sends it one way or the other. We trained ours on about 40,000 claims from ClaimDB's training data. Unanswerable claims turned out to be easy to spot from their wording alone. Phrases like "If audience popularity polls were considered" or "the most aesthetically pleasing" give them away.</p>
+<p>On the 340 claims our router sent to S, the lookup tool was just as accurate as the specialist and about 30% faster (Figure 7). On the claims that really were unanswerable, it was clearly better. The cost is the handful of answerable claims the router sends there by mistake, where the specialist still wins easily.</p>
+<figure><img src="../v3/fig/fig10_S_vs_C_groups.png"><figcaption><b>Figure 7.</b> Setups S and C on the same groups of claims, with Qwen3 8B as the judge.</figcaption></figure>
+
+<h2>What didn't work</h2>
+<p>Our very first idea was to paste the database layout straight into the judge's prompt. That fixed the made up table names, but the judge then gave up on more than half the claims without running a single query. Knowing the names wasn't enough.</p>
+<p>We also expected S to be a natural fit for simple claims that need just one table. On those claims it comes close to the specialist (74.9% against 76.7%), but we couldn't route them reliably. Whether a claim needs one table depends on how the database is organised, and the router only sees the claim's text. In our 210 claim sample, it sent 75 claims to S and only 23 of them actually needed one table.</p>
+<p>When S does get a simple claim wrong, it has usually fetched the data just fine and then stumbled on the last step (Figure 8). It has no date functions and can't work out percentages. To check that "236 users created their accounts after 2013 and have more than 10 views", it compared full dates with the number 2013 and counted 3,278 users.</p>
+<figure><img src="../v3/fig/fig11_S_failures.png"><figcaption><b>Figure 8.</b> Why setup S gets 54 of the 215 one table claims wrong.</figcaption></figure>
+<p>Finally, S saved less time than we hoped. Most of the time goes into the judge's own thinking, not into the specialist.</p>
+
+<h2>What's next</h2>
+<p>Setup C stays as it is. All the remaining work is on the cheap path (Figure 9). First, we want the lookup tool to get at least 90% of one table claims right. That starts with a year filter, a percentage option and better hints about what each column holds. After that, we'll train a smarter router that sees the database layout as well as the claim, so it can tell which claims really are simple.</p>
+<figure><img src="../v3/fig/fig12_roadmap.png"><figcaption><b>Figure 9.</b> Our plan for the next few weeks.</figcaption></figure>
+
+<h2>Where this fits</h2>
+<p>Early work checked claims against small tables that fit in a prompt, like TabFact <a href="#r3">[3]</a>. Newer systems such as Thucy <a href="#r2">[2]</a> and ClaimDB <a href="#r1">[1]</a> let large models query full databases. Text to SQL models like Arctic <a href="#r5">[5]</a> and OmniSQL <a href="#r6">[6]</a>, built on benchmarks such as BIRD <a href="#r4">[4]</a>, have become very good at writing queries. They were never meant to judge claims, though. Our work sits between the two. Instead of making the judge bigger, we give it a better tool, in the spirit of tool using agents like ReAct <a href="#r7">[7]</a>. Our judges are Qwen3 <a href="#r8">[8]</a> and Llama 3 <a href="#r9">[9]</a> models.</p>
+<p>A few limits are worth keeping in mind. We tested on one benchmark, and our specialist was trained on similar data, which may help it. The commercial scores come from the ClaimDB paper, not our own runs. Some comparisons use the smaller 210 claim sample. And the router may lean on the way ClaimDB happens to phrase its unanswerable claims.</p>
+<p>If you want a small model to check facts against a database, our advice is simple. Don't make it write SQL. Give it a specialist to talk to, and keep a simple lookup tool around for the claims that can't be answered.</p>
+
+<hr>
+
+<p><b>Code and full results:</b> <a href="https://github.com/Kushagra-Agnihotri/claimdb-specialist-sql">github.com/Kushagra-Agnihotri/claimdb-specialist-sql</a>. Every number in this post can be recomputed from the raw result files with a script in the <code>Kanishk/blog</code> folder.</p>
+<p><b>Team:</b> Kushagra Agnihotri, Kanishk Didwania and Navtej Sai Singh Dua, mentored by Prof. Dhruv Kumar, Dr. Krishna Garg and Dr. Chirag Chhablani. Course: [course name and code], BITS Pilani.</p>
+<p><b>AI use:</b> We used Claude to help write code, analyse results and edit the language of this post.</p>
+<p>Thanks to the ClaimDB authors for releasing their benchmark, code and model runs.</p>
+
+<h3>References</h3>
+<ol class="refs">
+<li id="r1">Michael Theologitis, Preetam Prabhu Srikar Dammu, Chirag Shah and Dan Suciu. 2026. ClaimDB: A Fact Verification Benchmark over Large Structured Data. In Proceedings of ACL 2026.</li>
+<li id="r2">Michael Theologitis and Dan Suciu. 2025. Thucy: An LLM-based Multi-Agent System for Claim Verification across Relational Databases. arXiv:2512.03278.</li>
+<li id="r3">Wenhu Chen, Hongmin Wang, Jianshu Chen, Yunkai Zhang, Hong Wang, Shiyang Li, Xiyou Zhou and William Yang Wang. 2020. TabFact: A Large-scale Dataset for Table-based Fact Verification. In ICLR 2020.</li>
+<li id="r4">Jinyang Li et al. 2023. Can LLM Already Serve as A Database Interface? A BIg Bench for Large-Scale Database Grounded Text-to-SQLs. In NeurIPS 2023 Datasets and Benchmarks Track.</li>
+<li id="r5">Zhewei Yao et al. 2026. Arctic-Text2SQL-R1: Simple Rewards, Strong Reasoning in Text-to-SQL. In Findings of ACL 2026.</li>
+<li id="r6">Haoyang Li et al. 2025. OmniSQL: Synthesizing High-quality Text-to-SQL Data at Scale. Proceedings of the VLDB Endowment 18.</li>
+<li id="r7">Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan and Yuan Cao. 2023. ReAct: Synergizing Reasoning and Acting in Language Models. In ICLR 2023.</li>
+<li id="r8">An Yang et al. 2025. Qwen3 Technical Report. arXiv:2505.09388.</li>
+<li id="r9">Aaron Grattafiori et al. 2024. The Llama 3 Herd of Models. arXiv:2407.21783.</li>
+</ol>
+</body></html>
